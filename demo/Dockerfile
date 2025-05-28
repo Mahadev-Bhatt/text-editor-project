@@ -1,12 +1,12 @@
-# Use a lightweight JDK image
+# Stage 1: build the JAR
+FROM maven:3.8.6-openjdk-21 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package
+
+# Stage 2: runtime image
 FROM openjdk:21-jdk-slim
-
-# Add a volume to store logs
-VOLUME /tmp
-
-# Copy the jar file
-ARG JAR_FILE=target/demo-0.0.1-SNAPSHOT.jar
-COPY ${JAR_FILE} app.jar
-
-# Run the jar file
-ENTRYPOINT ["java","-jar","/app.jar"]
+WORKDIR /app
+COPY --from=build /app/target/demo-0.0.1-SNAPSHOT.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]
